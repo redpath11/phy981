@@ -1,0 +1,120 @@
+import numpy as np 
+from decimal import Decimal
+# expectation value for the one body part, Harmonic oscillator in three dimensions
+def onebody(i, n, l):
+	homega = 10.0
+	return homega*(2*n[i] + l[i] + 1.5)
+
+def get_state(i,idx):
+	return idx[i]-1
+
+if __name__ == '__main__':
+	
+        Nparticles = 8
+	""" Read quantum numbers from file """
+        index = []
+	n = []
+        l = []
+        j = []	
+        mj = []
+        tz = []
+	spOrbitals = 0
+	with open("nucleispnumbers.dat", "r") as qnumfile:
+		for line in qnumfile:
+			nums = line.split()
+			if len(nums) != 0 and int(nums[5]) == 1:
+				index.append(int(nums[0]))
+				n.append(int(nums[1]))
+				l.append(int(nums[2]))
+				j.append(int(nums[3]))
+				mj.append(int(nums[4]))
+				tz.append(int(nums[5]))
+				spOrbitals += 1
+	
+	print spOrbitals,"orbits read."
+	print ""
+
+#	for itest in range(10):
+#		print get_state(itest,index)
+
+#	ptest=0
+	""" Read two-nucleon interaction elements (integrals) from file, brute force 4-dim array """
+	nninteraction = np.zeros([spOrbitals*2, spOrbitals*2, spOrbitals*2, spOrbitals*2])
+	with open("twobodyIN.dat", "r") as infile:
+		for line in infile:
+			number = line.split()
+			a = int(number[0]) - 1
+			b = int(number[1]) - 1
+			c = int(number[2]) - 1
+			d = int(number[3]) - 1
+			nninteraction[a][b][c][d] = Decimal(number[4])
+#			if ptest<=10:
+#				print a, b, c, d, Decimal(number[4])
+#				ptest+=1
+	""" Set up single-particle integral """
+	singleparticleH = np.zeros(spOrbitals)
+	for i in range(spOrbitals):
+		singleparticleH[i] = Decimal(onebody(i, n, l))
+		print i,index[i],n[i],l[i],singleparticleH[i]
+
+	""" Star HF-iterations, preparing variables and density matrix """
+
+        """ Coefficients for setting up density matrix, assuming only one along the diagonals """
+	C = np.eye(spOrbitals) # HF coefficients
+        DensityMatrix = np.zeros([spOrbitals,spOrbitals])
+        for gamma in range(spOrbitals):
+            for delta in range(spOrbitals):
+                sum = 0.0
+                for i in range(Nparticles):
+                    sum += C[gamma][i]*C[delta][i]
+                DensityMatrix[gamma][delta] = Decimal(sum)
+        maxHFiter = 100
+        epsilon =  1.0e-10 
+        difference = 1.0
+	hf_count = 0
+	oldenergies = np.zeros(spOrbitals)
+	newenergies = np.zeros(spOrbitals)
+
+#	ptest=0
+
+	while hf_count < maxHFiter and difference > epsilon:
+		print "############### Iteration %i ###############" % hf_count
+   	        HFmatrix = np.zeros([spOrbitals,spOrbitals])		
+		for alpha in range(spOrbitals):
+			for beta in range(spOrbitals):
+                            """  If tests for three-dimensional systems, including isospin conservation """
+                            if l[alpha] != l[beta] and j[alpha] != j[beta] and mj[alpha] != mj[beta] and tz[alpha] != tz[beta]: continue
+                            """  Setting up the Fock matrix using the density matrix and antisymmetrized NN interaction in m-scheme """
+     		            sumFockTerm = 0.0
+                            for gamma in range(spOrbitals):
+                                for delta in range(spOrbitals):
+                                    if (mj[alpha]+mj[gamma]) != (mj[beta]+mj[delta]) and (tz[alpha]+tz[gamma]) != (tz[beta]+tz[delta]): continue
+				    a,b,g,d = get_state(alpha,index), get_state(beta,index), get_state(gamma,index), get_state(delta,index)
+#				    if ptest<20:
+#				    	print a,b,g,d
+#					ptest+=1
+                                    sumFockTerm += DensityMatrix[gamma][delta]*(nninteraction[a][g][b][d] - nninteraction[a][g][d][b])
+                            HFmatrix[alpha][beta] = Decimal(sumFockTerm)
+                            """  Adding the one-body term, here plain harmonic oscillator """
+                            if beta == alpha:   HFmatrix[alpha][alpha] += singleparticleH[alpha]
+		spenergies, C = np.linalg.eigh(HFmatrix)
+                """ Setting up new density matrix in m-scheme """
+                DensityMatrix = np.zeros([spOrbitals,spOrbitals])
+                for gamma in range(spOrbitals):
+                    for delta in range(spOrbitals):
+                        sum = 0.0
+                        for i in range(Nparticles):
+                            sum += C[gamma][i]*C[delta][i]
+                        DensityMatrix[gamma][delta] = Decimal(sum)
+		newenergies = spenergies
+                """ Brute force computation of difference between previous and new sp HF energies """
+                sum =0.0
+                for i in range(spOrbitals):
+                    sum += (abs(newenergies[i]-oldenergies[i]))/spOrbitals
+                difference = sum
+                oldenergies = newenergies
+                print "Single-particle energies, ordering may have changed "
+		print "lambda= ",difference
+                for i in range(spOrbitals):
+                    print('{0:4d}  {1:.4f}'.format(i, Decimal(oldenergies[i])))
+		hf_count += 1
