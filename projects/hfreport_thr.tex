@@ -1,0 +1,182 @@
+\documentclass[]{scrartcl}
+
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{braket}
+
+
+\newcommand{\oxygen}[1]{%\oxygen{<A>}
+	\ensuremath{ ^{#1} \mathrm{O} }}
+
+\title{The Hartree-Fock Algorithm}
+\author{Thomas Redpath}
+
+\begin{document}
+
+%Thomas Redpath
+%\noindent PHY 981, Project 1B
+%\noindent 4 March 2016
+
+\maketitle
+
+\section*{Introduction}
+
+This project applies the Hartree-Fock algorithm to a system of 8 neutrons confined in a harmonic oscillator potential (eq.~\ref{eq:hopot}) with an added nucleon-nucleon interaction. Eight protons are then added to the system to model \oxygen{16}. The results of the calculation can then be compared to measured separation energies.
+
+\begin{equation}
+	\hat{H} = \sum_{i=1}^{N} \frac{\hat{p} _i ^2}{2m} + \sum_{i=1}^{N} \frac{1}{2} m \omega r _i ^2 + \sum_{i<j} \hat{V} _{ij}
+	\label{eq:hopot}
+\end{equation}
+
+\noindent Using the harmonic oscillator states as our single particle basis, the Hartree-Fock matrix can be written as
+
+\begin{equation}
+%	\hat{h} ^{HF} _{\alpha \beta} = \bra{\alpha} \hat{h}_0 \ket{\beta} + \sum_{\gamma \delta} \rho _{\gamma \delta} \bra{\alpha \gamma} \hat{V} \ket{ \beta \delta} _{AS}
+	\hat{h} ^{HF} _{\alpha \beta} = \delta _{\alpha, \beta} \epsilon _{\alpha} + \sum_{\gamma \delta} \rho _{\gamma \delta} \bra{\alpha \gamma} \hat{V} \ket{ \beta \delta} _{AS}
+	\label{eq:hfmtx}
+\end{equation}
+
+\noindent where the density matrix ($\rho _{\gamma \delta}$) and the harmonic oscillator energies ($\epsilon _{\alpha}$)are, respectively,
+
+\begin{equation}
+	\rho _{\gamma \delta} = \sum_{k=1}^{N} C _{k \gamma} C^{*} _{k \delta}
+	\label{eq:hfrho}
+\end{equation}
+
+\begin{equation}
+	\epsilon _{\alpha} = \hbar \omega ( 2n + l + 3/2)
+	\label{eq:hospe}
+\end{equation}
+
+\noindent The Hartree-Fock algorithm essentially consists of defining some interaction Hamiltonian, a convenient basis in which to expand the HF single particle (s.p.) states and a guess for the initial coefficients of each HF s.p. state. Then we minimize the single particle energies by varying the contribution (coefficients) of the basis states to each HF state. This procedure is implemented by iteratively solving a set of eigenvalue equations until the change in s.p. energies between iterations converges to a user-defined limit
+
+\section*{Symmetries}
+
+Certain symmetries of the 3D harmonic oscillator and the added nucleon interaction can be utilized in the numerical implementation of the HF algorithm. The single-particle HF Hamiltonian (eq.~\ref{eq:hfmtx}) is a scalar operator (energy). Therefore, the nucleon interaction $\hat{V}$ must also be a scalar ($L=0,M=0$). This imposes conditions on the matrix elements $\bra{\alpha \gamma} \hat{V} \ket{\beta \delta}$ according to
+
+\begin{equation}
+	\bra{\xi ' j ' m '} T _{LM} \ket{ \xi j m} = 0 \quad \mathrm{unless} \quad
+		\begin{cases}
+			\bigtriangleup (j L j') \\
+			m + M = m'
+		\end{cases}
+	\label{eq:tensor}
+\end{equation}
+
+\noindent where
+
+\begin{equation}
+	\bigtriangleup (j L j') \Rightarrow \left | j - L \right | \leq j' \leq j + L
+	\label{eq:trianglerule}
+\end{equation}
+
+\noindent and $j = l + s$ with $s$ as the spin of the particle (always $1/2$ in our case). So, the condition~\ref{eq:trianglerule} reduces to $j=j'$ and imposes the restriction~\ref{eq:lcond} (since $s$ is always $1/2$) in order to have non zero matrix elements $\bra{\alpha \gamma} \hat{V} \ket{\beta \delta}$.
+
+\begin{equation}
+	l _{\alpha} + l _{\gamma} = l _{\beta} + l _{\delta}
+	\label{eq:lcond}
+\end{equation}
+
+%(the one body $\hat{h} _0$ is trivially diagonal if the basis states are chosen to be its eigenfunctions as we have in this case where $\hat{h} _0$ is the harmonic oscillator (h.o.) Hamiltonian and we take the h.o. eigenfunctions as our basis states)
+
+Furthermore, the second condition from \ref{eq:tensor} reduces to \ref{eq:mcond} with $M=0$.
+
+\begin{equation}
+	m _{\alpha} + m _{\gamma} = m _{\beta} + m_{\delta}
+	\label{eq:mcond}
+\end{equation}
+
+Finally, since we are dealing with indistinguishable particles, these restrictions must hold regardless of how we label the states. Therefore, we can fix $l _{\alpha} = l _{\beta}$ and $m _{\alpha} = m _{\beta}$ so that the HF s.p. Hamiltonian is diagonal in $ljm$.
+
+\section*{Testing without the nucleon interaction}
+
+The file \texttt{hfHOneutrons.py} contains a version of the code that leaves out the nucleon interaction and runs the Hartree-Fock algorithm for 8 neutrons. The output is contained in the file \texttt{HO.out} and gives the harmonic oscillator energies (eq.~\ref{eq:hospe}, taking $\hbar \omega = 10$ MeV) and level degeneracies ($g_l=2l+1$, $g_s = 2$, $g=g_s g_l$). The results are summarized in Table~\ref{tab:HOout}.
+
+\begin{table}[h]
+\centering
+	\begin{tabular}{ c | c c c | c }
+	$N=2n + l$ & $n$ & $l$ & $g$ & $\epsilon$ [MeV]\\
+\hline
+	0 & 0 & 0 & 2 & 15 \\
+\hline
+	1 & 0 & 1 & 6 & 25\\
+\hline
+	\multirow{2}{*}{2} & 0 & 2 & 10 & 35 \\
+	 & 1 & 0 & 2 & 35\\
+\hline
+	\multirow{2}{*}{3} & 0 & 3 & 14 & 45\\
+	 & 1 & 1 & 6 & 45\\
+\hline
+	\end{tabular}
+	\caption{Harmonic oscillator quantum numbers ($nl$), degeneracies and energies for the first 40 states.}
+	\label{tab:HOout}
+\end{table}
+
+\section*{Neutron Drops}
+
+The file \texttt{hfneutrons.py} is a modified version of the code that reads in only data for the neutron orbitals ($t_z = 1/2$); its output is collected in \texttt{HFn.out} and summarized in Table~\ref{tab:Nout}. Compared to the harmonic oscillator energies, the most noticable difference when the nucleon interaction is introduced is the re-ordering of the level structure. The HF single particle energies do not have the same degree of degeneracy as the harmonic oscillator levels. The level groupings now reflect the familiar arrangement of a Woods-Saxon potential with spin-orbit coupling (WS + s.o) for the lower levels (the $1 p _{3/2}$ appears below the $0 f _{7/2}$). The  Assignments in Table~\ref{tab:Nout} are made based on the occupancy of each level.
+
+\begin{table}
+\centering
+	\begin{tabular}{ c c | c }
+	$\epsilon $ & $g$ & Assignment\\
+\hline
+	$-18.5136$ & $2$ & $0 s _{1/2}$\\
+	$1.5706$    & $4$ & $0 p _{3/2}$\\
+	$7.1960$    & $2$ & $0 p _{1/2}$\\
+	$22.5123$ & $6$ & $0 d _{5/2}$\\
+	$24.2719$ & $2$ & $1 s _{1/2}$\\
+	$27.7574$ & $4$ & $0 d _{3/2}$\\
+	$36.9189$ & $4$ & $1 p _{3/2}$\\
+	$37.2630$ & $8$ & $0 f _{7/2}$\\
+	$38.0082$ & $4$ & $1 p_{1/2}$\\
+	$41.5403$ & $6$ & $0 f _{5/2}$\\
+\hline
+	\end{tabular}
+	\caption{Neutron drop energies. Levels are labeled by matching occupancy to the familiar WS+s.o. level scheme.}
+	\label{tab:Nout}
+\end{table}
+
+\section*{\oxygen{16} Model}
+
+The python code \texttt{hfnuclei.py} adds 8 protons to model the \oxygen{16} system; the results are listed in \texttt{HFnp.out} and Table~\ref{tab:o16out}. Similar to the neutron system, the HF s.p. energies are grouped like the WS + s.o. levels, however, the neutron and proton energies for a particular level are not the same. This is attributed to a difference in the nucleon interaction for particles with different $t_z$. In other words, the nucleon interaction breaks isospin symmetry.
+
+\begin{table}
+\centering
+	\begin{tabular}{ c c | c | c }
+	$\epsilon _{\nu} $ & $\epsilon _{\pi} $ & g & Assignment\\
+\hline
+	$-40.64$ & $-40.46$ & $g$ & $0 s _{1/2}$\\
+	$-11.72$ & $-11.59$ & $4$ & $0 p _{3/2}$\\
+	$-6.84$ & $-6.71$ & $2$ & $0 p _{1/2}$\\
+	$18.76$ & $18.81$ & $6$ & $0 d _{5/2}$\\
+	$21.02$ & $21.07$ & $2$ & $1 s _{1/2}$\\
+	$22.92$ & $22.96$ & $4$ & $0 d _{3/2}$\\
+	$35.13$ & $35.16$ & $4$ & $1 p _{3/2}$\\
+	$35.85$ & $35.88$ & $2$ & $1 p _{1/2}$\\
+	$36.03$ & $36.06$ & $8$ & $0 f _{7/2}$\\
+	$39.28$ & $39.31$ & $6$ & $0f _{5/2}$\\
+\hline
+	\end{tabular}
+	\caption{Neutron and proton HF s.p. energies labeled based on comparison to the WS + s.o. level scheme.}
+	\label{tab:o16out}
+\end{table}
+	
+We can now compare the HF model predictions to their corresponding separation energies (Table~\ref{tab:sep}). The HF predictions for the \oxygen{16} separation energies differ from experimental results by a factor of 2. This suggests that this simple model is quite a good starting point. However, the discrepancy between prediction and experiment grows much larger for non-closed-shell systems.
+
+\begin{table}
+\centering
+	\begin{tabular}{ c | c || c | c }
+\hline
+	$\epsilon ^{\nu} _{0p1/2} = 6.84$ MeV & $\epsilon ^{\pi} _{0p1/2} = 6.71$ MeV & $\epsilon ^{\nu} _{0d5/2} = 18.76$ MeV & $\epsilon ^{\pi} _{0d5/2} = 18.81$ MeV \\
+	$ S _n (\oxygen{16}) = 15.7$ MeV & $ S _p (\oxygen{16}) = 12.1$ MeV & $ S _n (\oxygen{17}) = 4.14$ MeV & $ S _p (^{17} \mathrm{F}) = 0.6$ MeV \\
+\hline
+	\end{tabular}
+	\caption{Comparison of HF s.p. energies to measured separation energies.}
+	\label{tab:sep}
+\end{table}
+
+
+
+
+\end{document}
