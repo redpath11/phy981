@@ -1,0 +1,152 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+
+%% User-defined Commands %%
+\newcommand{\sz}[2]{% \sz{<<state index>}{<spin index>>}
+	\ensuremath{ \frac{1}{2} \sum_{#1 #2} #2 a _{#1 #2} ^{\dagger} a _{#1 #2} } }
+
+\newcommand{\splus}[1]{% \splus{<state index>}
+	\ensuremath{ \sum_{#1} \sigma a _{#1 +} ^{\dagger} a _{#1 -} } }
+
+\newcommand{\sminus}[1]{% \sminus{<index>}
+	\ensuremath{ \sum_{m} \sigma a _{m -} ^{\dagger} a _{m +} } }
+	
+\newcommand{\hzero}[2]{% \hzero{<state index>}{<spin index>}
+	\ensuremath{ \sum_{#1 #2} (#1-1) a _{#1 #2} ^{\dagger} a _{#1 #2} }}
+	
+\newcommand{\numop}[2]{% \numop{<state index>}{<spin index>}
+	\ensuremath{ \hat{n} _{#1 #2} }}
+
+\newcommand{\sop}[1]{% \sop{<z,+,->}
+	\ensuremath{ \hat{S}_{#1} } }
+	
+\newcommand{\cop}[2]{% \cop{<state index>}{<spin index>}
+	\ensuremath{ \hat{a} _{#1 #2} ^{\dagger} }}
+
+\newcommand{\aop}[2]{% \aop{<state index>}{<spin index>}
+	\ensuremath{ \hat{a} _{#1 #2} }}
+	
+\newcommand{\krondelt}[2]{% \krondelt{<idx 1>}{<idx 2>}
+	\ensuremath{ \delta _{#1 #2} }}
+	
+\newcommand{\sopz}{
+	\ensuremath{ \hat{S} _{z} } }
+
+\newcommand{\sopp}{
+	\ensuremath{ \hat{S} _{+} } }
+
+\newcommand{\sopm}{
+	\ensuremath{ \hat{S} _{-} } }
+	
+\newcommand{\hop}{
+	\ensuremath{ \hat{H} _0 }}
+	
+\newcommand{\commutator}[2]{% \commutator{<1st op>}{<2nd op>}}
+	\ensuremath{ \left [ #1,#2 \right ] }}
+
+
+\newcommand{\ssqr}{% sum form of S^2
+	\ensuremath{ \sopz ^2 + \frac{1}{2} ( \sopp \sopm + \sopm \sopp ) } }
+	
+\begin{document}
+
+Show that the unperturbed Hamiltonian commutes with the spin projection \sop{z}:
+
+
+\begin{align*}
+	\left [ H _0, \sop{z} \right ] &=\\
+	&=\left ( \hzero{p}{\sigma} \right ) \left ( \sz{p'}{\sigma'} \right ) - \left ( \sz{p''}{\sigma''} \right ) \left ( \hzero{p'''}{\sigma'''} \right )\\
+	&= \frac{1}{2} \sum_{p \sigma p' \sigma'} (p-1) \sigma' \numop{p}{\sigma} \numop{p'}{\sigma'} - \frac{1}{2} \sum_{p'' \sigma'' p''' \sigma'''} (p'''-1) \sigma'' \numop{p''}{\sigma''} \numop{p'''}{\sigma'''}
+\end{align*}
+
+In this form it is apparent that these two sums are identical and cancel to give $[\hat{H}_0,\sop{z}]=0$.
+
+Show that the unperturbed Hamiltonian commutes with the total spin squared operator $\hat{S}^2$:
+
+\begin{align}
+	\left [ \hat{H}_0, \hat{S}^2 \right ] &= \left [ \hop, \sop{z} ^2 \right ] + \frac{1}{2} \left [ \hop,(\sop{+} \sop{-} + \sop{-}\sop{+}) \right ]\\
+	&= \commutator{\hop}{\sop{z}} \sop{z} + \sop{z} \commutator{\hop}{\sop{z}} +\frac{1}{2} \commutator{\hop}{(\sop{+}\sop{-} + \sop{-}\sop{+})}\\
+	&= \frac{1}{2} \left ( \commutator{\hop}{\sop{+}} \sop{-} + \sop{+} \commutator{\hop}{\sop{-}} + \commutator{\hop}{\sop{-}} \sop{+} + \sop{-} \commutator{\hop}{\sop{+}} \right )
+\end{align}
+
+Now consider the commutators \commutator{\hop}{\sop{+}} and \commutator{\hop}{\sop{-}}.
+
+\begin{equation}
+	\commutator{\hop}{\sop{+}} = \left ( \hzero{p}{\sigma} \right ) \left ( \splus{p'} \right ) - \left ( \splus{p''} \right ) \left ( \hzero{p'''}{\sigma'''} \right )
+	\label{eq:hsplus}
+\end{equation}
+
+Using the anti-commutation relations of the creation and annihilation operators, we can show that the first product of sums in eq.~\ref{eq:hsplus} contains the second and therefore, \commutator{\hop}{\sop{+}} simplifies. Focusing on the first product of sums in eq.~\ref{eq:hsplus}:
+
+\begin{align}
+	& \sum_{p \sigma p'} (p-1) \sigma \cop{p}{\sigma} \aop{p}{\sigma} \cop{p'}{+} \aop{p'}{-}\\
+	&= \sum_{p \sigma p'} (p-1) \sigma \cop{p}{\sigma} \left (\krondelt{p}{p'} \krondelt{\sigma}{+} -  \cop{p'}{+} \aop{p}{\sigma} \right ) \aop{p'}{-}\\
+	&= \sum_{p \sigma p'} (p-1) \sigma \left ( \krondelt{p}{p'} \krondelt{\sigma}{+} \cop{p}{\sigma} \aop{p'}{-} - \cop{p}{\sigma}  \cop{p'}{+} \aop{p}{\sigma} \aop{p'}{-} \right )\\
+	&= \sum_{p \sigma p'} (p-1) \sigma \left ( \krondelt{p}{p'} \krondelt{\sigma}{+} \cop{p}{\sigma} \aop{p'}{-} - \cop{p'}{+} \cop{p}{\sigma} \aop{p'}{-} \aop{p}{\sigma} \right )\\
+	&= \sum_{p \sigma p'} (p-1) \sigma \left ( \krondelt{p}{p'} \krondelt{\sigma}{+} \cop{p}{\sigma} \aop{p'}{-} - \cop{p'}{+} \left ( \krondelt{p}{p'} \krondelt{\sigma}{-} - \aop{p'}{-} \cop{p}{\sigma} \right ) \aop{p}{\sigma} \right )\\
+	&= \sum_{p \sigma p'} (p-1) \sigma \left ( \krondelt{p}{p'} \krondelt{\sigma}{+} \cop{p}{\sigma} \aop{p'}{-} - \krondelt{p}{p'} \krondelt{\sigma}{-} \cop{p'}{+} \aop{p}{\sigma} + \cop{p'}{+} \aop{p'}{-} \cop{p}{\sigma} \aop{p}{\sigma} \right )\\
+%	&= \sum_{p}  \left ( (p-1) \cop{p}{+} \aop{p}{-} \right ) + \sum_{p} \left ( (p-1) \cop{p}{+} \aop{p}{-} \right ) + \sum_{p \sigma p'} (p-1) \left ( \cop{p'}{+} \aop{p'}{-} \cop{p}{\sigma} \aop{p}{\sigma} \right )\\
+	&= 2 \sum_{p}  \left ( (p-1) \cop{p}{+} \aop{p}{-} \right ) + \sum_{p \sigma p'} (p-1) \left ( \cop{p'}{+} \aop{p'}{-} \cop{p}{\sigma} \aop{p}{\sigma} \right )
+\end{align}
+
+Comparing the results of this calculation with the second product of sums in eq.~\ref{eq:hsplus}, we notice that it cancels in \ref{eq:hsplus} leaving
+
+\begin{equation}
+	\commutator{\hop}{\sop{+}} = 2 \sum_{p}  \left ( (p-1) \cop{p}{+} \aop{p}{-} \right )
+	\label{eq:hsplusres}
+\end{equation}
+
+Performing the same procedure on \commutator{\hop}{\sop{-}}:
+
+\begin{equation}
+	\commutator{\hop}{\sop{-}} = 2 \sum_{p}  \left ( (p-1) \cop{p}{-} \aop{p}{+} \right )
+	\label{eq:hsminusres}
+\end{equation}
+
+We can now re-write the remaining terms in $ \left [ \hat{H}_0, \hat{S}^2 \right ]$.
+
+\begin{align*}
+	\commutator{\hop}{\sop{+}} \sop{-} &= 2 \sum _{pp'} (p-1) \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+}\\
+	\sop{+} \commutator{\hop}{\sop{-}} &= 2 \sum _{pp'} (p'-1) \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+}\\
+	\commutator{\hop}{\sop{-}} \sop{+} &= 2 \sum _{pp'} (p-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}\\
+	\sop{-} \commutator{\hop}{\sop{+}} &= 2 \sum _{pp'} (p'-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}
+\end{align*}
+
+Taking \commutator{\hop}{\sop{+}} \sop{-}:
+
+\begin{align*}
+	\commutator{\hop}{\sop{+}} \sop{-} &= \sum _{pp'} (p-1) \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+}\\
+	&= \sum _{pp'} (p-1) \cop{p}{+} \left ( \krondelt{p}{p'} -  \cop{p'}{-} \aop{p}{-} \right ) \aop{p'}{+}\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{+} \aop{p'}{+} -  \cop{p}{+} \cop{p'}{-} \aop{p}{-} \aop{p'}{+} \right )\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{+} \aop{p'}{+} -  \cop{p}{+} \left ( \krondelt{p}{p'} - \aop{p}{-} \cop{p'}{-} \right ) \aop{p'}{+} \right )\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{+} \aop{p'}{+} - \krondelt{p}{p'} \cop{p}{+} \aop{p'}{+} - \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+} \right )\\
+	&= \sum _{p} (p-1) \cop{p}{+} \aop{p}{+} - \sum _{p} (p-1) \cop{p}{+} \aop{p}{+} - \sum _{pp'} (p-1) \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+} \\
+&= - \sum _{pp'} (p-1) \cop{p'}{-} \aop{p'}{+} \cop{p}{+} \aop{p}{-}\\
+\end{align*}
+
+Taking \commutator{\hop}{\sop{-}} \sop{+}:
+
+\begin{align*}
+	\commutator{\hop}{\sop{-}} \sop{+} &= \sum _{pp'} (p-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}\\
+	&= \sum _{pp'} (p-1) \cop{p}{-} \left ( \krondelt{p}{p'} - \cop{p'}{+} \aop{p}{+} \right ) \aop{p'}{-}\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{-} \aop{p'}{-} - \cop{p}{-} \cop{p'}{+} \aop{p}{+} \aop{p'}{-} \right )\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{-} \aop{p'}{-} - \cop{p}{-} \left ( \krondelt{p}{p'} - \aop{p}{+} \cop{p'}{+} \right ) \aop{p'}{-} \right )\\
+	&= \sum _{pp'} (p-1) \left ( \krondelt{p}{p'} \cop{p}{-} \aop{p'}{-} - \krondelt{p}{p'} \cop{p}{-} \aop{p'}{-} - \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-} \right )\\
+	&= \sum _{p} (p-1)  \cop{p}{-} \aop{p}{-} - \sum _{p} (p-1) \cop{p}{-} \aop{p}{-} - \sum _{pp'} (p-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}\\
+	&= - \sum _{pp'} (p-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}
+\end{align*}
+
+Plugging these results in for their respective terms in the the remnant of $ \left [ \hat{H}_0, \hat{S}^2 \right ]$:
+
+\begin{align*}
+	& \left [ \hat{H}_0, \hat{S}^2 \right ]\\
+	&= \frac{1}{2} \left ( \commutator{\hop}{\sop{+}} \sop{-} + \sop{+} \commutator{\hop}{\sop{-}} + \commutator{\hop}{\sop{-}} \sop{+} + \sop{-} \commutator{\hop}{\sop{+}} \right )\\
+	&= - \sum _{pp'} (p-1) \cop{p'}{-} \aop{p'}{+} \cop{p}{+} \aop{p}{-}\\
+	& + \sum _{pp'} (p'-1) \cop{p}{+} \aop{p}{-} \cop{p'}{-} \aop{p'}{+}\\
+	& - \sum _{pp'} (p-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}\\
+	& + \sum _{pp'} (p'-1) \cop{p}{-} \aop{p}{+} \cop{p'}{+} \aop{p'}{-}
+\end{align*}
+
+
+\end{document}
